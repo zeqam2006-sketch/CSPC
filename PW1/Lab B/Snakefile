@@ -1,3 +1,7 @@
+rule all:
+    input:
+        "figure.png"
+
 rule plot:
     input:
         "decay_observed.csv"
@@ -5,4 +9,7 @@ rule plot:
         "figure.png"
     shell:
         "python plot.py"
-        
+
+rule clean:
+    shell:
+        "rm -f figure.png"
