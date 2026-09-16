@@ -1,4 +1,10 @@
+# General Python & OS exclusions
 __pycache__/
 *.pyc
 .pytest_cache/
 .DS_Store
+
+# Lab B exclusions
+PW1/Lab B/figure.png
+.snakemake/
+*/.snakemake/
