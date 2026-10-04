@@ -1,9 +1,27 @@
 # CSPC Computer Science for Physics and Chemistry
 
-## PW1 - Lab A: Speed Comparison Results
+My coursework repository. Each practical is under `PW<n>/Lab <X>/`.
 
-* **Pure Python execution time:** 0.0147 seconds
-* **NumPy Vectorized execution time:** 0.0001 seconds
+## Setup
+
+Create the environment for a given lab with `conda env create -f "PW<n>/Lab <X>/environment.yml"`, then run `conda activate cspc`.
+
+---
+
+## PW1 - Lab A: Reproducible Foundations
+
+**What I built:**
+- The CSPC repository with a conda environment (`environment.yml`), the decay simulation files, three pytest tests and a speed comparison script, all pushed to GitHub.
+
+**Speed comparison (loop vs NumPy):**
+- loop : 3.5814 s
+- numpy : 0.0003 s
+- speed-up: 13502.6 x faster
+
+**Tests:** all passing? yes (3 passed)
+
+**Conclusion:**
+- The repository, the environment and the tests all worked. The NumPy version is thousands of times faster than the pure Python loop because it decides all atoms at once with one binomial draw instead of looping over every atom. The exact speed-up changes a little from run to run, because the NumPy time is very small.
 
 ## PW1 --- Lab B
 

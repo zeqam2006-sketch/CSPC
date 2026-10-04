@@ -1,17 +1,21 @@
-
 import time
-import numpy as np
-from decay import simulate
+from decay import simulate, simulate_loop
 
-# Pure Python loop timing
-t0 = time.time()
-py_res = simulate(1000000, 0.4)
-t1 = time.time()
-print(f"Pure Python execution time: {t1 - t0:.4f} seconds")
+N0 = 200000
+LAM = 0.4
 
-# Vectorized NumPy timing
-t0 = time.time()
-steps = np.arange(100)
-np_res = 1000000 * ((1 - 0.4) ** steps)
-t1 = time.time()
-print(f"NumPy Vectorized execution time: {t1 - t0:.4f} seconds")
+# Pure Python loop version
+t0 = time.perf_counter()
+simulate_loop(N0, LAM)
+t1 = time.perf_counter()
+loop_time = t1 - t0
+print(f"Pure Python execution time: {loop_time:.4f} seconds")
+
+# Vectorised NumPy version
+t0 = time.perf_counter()
+simulate(N0, LAM)
+t1 = time.perf_counter()
+numpy_time = t1 - t0
+print(f"NumPy Vectorized execution time: {numpy_time:.4f} seconds")
+
+print(f"NumPy is {loop_time / numpy_time:.1f} times faster")
