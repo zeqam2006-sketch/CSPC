@@ -14,6 +14,7 @@ The observed data (`decay_observed.csv`) represents a decay process over time. U
 
 ### Automation
 The Snakemake pipeline automates the generation of `figure.png` from `decay_observed.csv` via `plot.py`, re-executing only when the input dataset or script changes.
+
 ---
 
 ## PW2 - Lab A: Motion from Tracking Data
