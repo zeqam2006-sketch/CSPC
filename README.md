@@ -50,3 +50,7 @@ The Snakemake pipeline automates the generation of `figure.png` from `decay_obse
 
 **What integrating back showed:**
 - Even though the acceleration was very noisy, integrating it twice recovered the position to within 0.78 m, because integration is a sum and the random errors partly cancel out. Differentiation amplifies noise, integration suppresses it.
+
+**Bonus: 2D tracked trajectory:**
+- The tracked path in `trajectory.csv` has the shape of a figure eight. I computed the velocity components with `np.gradient` on x and y separately and combined them into the speed sqrt(vx^2 + vy^2); the figure is saved as `trajectory.png`.
+- Max speed: 38.69, mean speed: 23.65 (position units per second). The speed rises and falls several times during the run, and the curve is a bit rough because the tracking data is noisy and the derivative amplifies that noise (only one derivative here, so much less than for the acceleration).
