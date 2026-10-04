@@ -23,7 +23,7 @@ Create the environment for a given lab with `conda env create -f "PW<n>/Lab <X>/
 **Conclusion:**
 - The repository, the environment and the tests all worked. The NumPy version is thousands of times faster than the pure Python loop because it decides all atoms at once with one binomial draw instead of looping over every atom. The exact speed-up changes a little from run to run, because the NumPy time is very small.
 
-## PW1 --- Lab B
+## PW1 - Lab B
 
 ![Decay Analysis](PW1/Lab%20B/figure.png)
 
