@@ -54,3 +54,26 @@ The Snakemake pipeline automates the generation of `figure.png` from `decay_obse
 **Bonus: 2D tracked trajectory:**
 - The tracked path in `trajectory.csv` has the shape of a figure eight. I computed the velocity components with `np.gradient` on x and y separately and combined them into the speed sqrt(vx^2 + vy^2); the figure is saved as `trajectory.png`.
 - Max speed: 38.69, mean speed: 23.65 (position units per second). The speed rises and falls several times during the run, and the curve is a bit rough because the tracking data is noisy and the derivative amplifies that noise (only one derivative here, so much less than for the acceleration).
+
+---
+
+## PW2 - Lab B: Optimization in Chemistry
+
+**What I did:**
+- Compared gradient descent, Newton's method and SLSQP on two functions (`warmup.py`), then used optimization for three chemistry problems: fitting a reaction rate (`kinetics.py`), finding a chemical equilibrium (`equilibrium.py`) and locating a titration equivalence point (`titration.py`, bonus). The plots are `kinetics.png`, `equilibrium.png` and `titration.png`.
+
+**Part 2 - Comparing the three methods:**
+- Easy function f(x) = (x-3)^2 + 1: all three methods reach x = 3 (gradient descent 2.99999997, Newton 3.0, SLSQP 3.0).
+- Harder function g(x) = x^4 - 3x^2 + x + 5, start x0 = 0: gradient descent (-1.3008) and SLSQP (-1.3009) reach the deep minimum (g = 1.486), but Newton stops at x = 0.170 where g'' = -5.65 < 0, so it is a maximum, not a minimum.
+- Start x0 = 2: gradient descent and SLSQP again reach x = -1.30, while Newton reaches x = 1.131 with g'' = 9.35 > 0. That is a minimum, but only the shallow local one (g = 3.93).
+- The starting point changed Newton's answer (0.170 vs 1.131) but not the answer of gradient descent and SLSQP. Newton solves g'(x) = 0, so it can land on a maximum or on a local minimum, and the sign of g'' must be checked. On the easy convex function the methods agree, on the harder landscape the starting point and the algorithm matter.
+
+**Part 3 - Reaction rate:**
+- Fitted rate constant: k = 0.262 (expected about 0.25). The fitted curve passes through the measured points.
+
+**Part 4 - Chemical equilibrium (H2 + I2 <=> 2 HI, K = 15.6):**
+- Newton (root-finding) and SLSQP (minimizing the squared imbalance) agree: x = 0.6638 (difference about 2e-7).
+- Equilibrium amounts: H2 = 0.3362 mol, I2 = 0.3362 mol, HI = 1.3277 mol.
+
+**Part 5 (bonus) - Titration:**
+- The slope of the pH curve is largest at V = 50.0 mL, so the equivalence point is at 50.0 mL (pH = 7.0 there, largest slope 4.0 pH units per mL).
