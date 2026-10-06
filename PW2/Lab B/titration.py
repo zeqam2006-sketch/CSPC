@@ -50,6 +50,8 @@ ax2.set_xlabel("Volume of base (mL)")
 ax2.set_ylabel("Slope (pH per mL)")
 ax2.set_title("Slope of the titration curve")
 ax2.legend()
+ax1.grid(True)
+ax2.grid(True)
 
 plt.tight_layout()
 plt.savefig("titration.png", dpi=150)
