@@ -82,7 +82,15 @@ The Snakemake pipeline automates the generation of `figure.png` from `decay_obse
 
 ## PW3 --- Data, Distributions, Testing, and Causation
 
-### Session 1 - Shape of the variables
+### Session 1 - Characterise the data
+
+#### Task 1 - Loading the data
+
+I loaded `heart.csv` with pandas (`pd.read_csv`): 303 patients and 14 columns, and isolated the four continuous columns `age`, `chol`, `trestbps` and `thalach`.
+
+Source: Heart Disease dataset (Cleveland), UCI Machine Learning Repository (also on Kaggle: "Heart Disease UCI").
+
+#### Task 2 - Shape of the variables
 
 ![Histograms](PW3/histograms.png)
 
@@ -93,9 +101,29 @@ Looking at the four histograms, here is how I would describe each variable:
 - **trestbps** (resting blood pressure) is also a bit lopsided to the right. Most patients are between 120 and 140, and only a few have really high pressure (up to 200).
 - **thalach** (max heart rate) is lopsided in the opposite direction. Most values are high (around 150-170), and a smaller group of patients has much lower heart rates, which creates a tail on the left side.
 
-## Session 2
+#### Task 3 - Normality check
 
-### Task 4 - Is the effect real? (thalach, disease vs healthy)
+![Q-Q plots](PW3/qqplots.png)
+
+I used two methods: Q-Q plots (graphical) and the Shapiro-Wilk test (H0: the data is normal; p < 0.05 means not normal).
+
+| variable | Shapiro-Wilk p | verdict |
+|---|---|---|
+| age | 0.0058 | approximately normal |
+| chol | 5.4e-09 | not normal |
+| trestbps | 1.5e-06 | not normal |
+| thalach | 6.6e-05 | not normal |
+
+- **age**: the points follow the straight line closely and W is very close to 1 (0.986). Shapiro rejects normality formally, but with about 300 patients it detects even tiny deviations, so I treat age as approximately normal.
+- **chol**: the points curve away from the line at the upper end (long right tail and one extreme outlier), so it is not normal.
+- **trestbps**: the points bend upwards on the right side (right skew), so it is not normal.
+- **thalach**: the points fall below the line at the low end (left skew), so it is not normal.
+
+Because thalach is not normal, I used a non-parametric test (Mann-Whitney) in Session 2 instead of the t-test.
+
+### Session 2 - Draw conclusions
+
+#### Task 4 - Is the effect real? (thalach, disease vs healthy)
 
 **Method.** I split thalach into two groups using `target` (1 = disease, n = 165; 0 = healthy, n = 138). In Session 1 thalach was not normal (Shapiro p = 7e-05), and the disease group alone is also not normal (p = 0.0004). Because the t-test assumes normality, I used the non-parametric Mann-Whitney U test instead, two-tailed (H0: the two groups have the same distribution; H1: they differ), alpha = 0.05.
 
@@ -114,7 +142,7 @@ Looking at the four histograms, here is how I would describe each variable:
 
 The picture agrees with the test: the means are far apart (about 19 bpm), the error bars are small and the confidence intervals do not overlap, so the difference is real.
 
-### Task 5 - Do age and thalach move together?
+#### Task 5 - Do age and thalach move together?
 
 **Method.** I computed the Pearson correlation coefficient r between age and thalach. Since thalach is not normal, I also computed the Spearman rank correlation (no normality assumption) as a check.
 
@@ -124,9 +152,9 @@ The picture agrees with the test: the means are far apart (about 19 bpm), the er
 
 **Interpretation.** age and thalach move in opposite directions: older patients tend to reach a lower maximum heart rate (on average about 1 bpm less per year, from the trend line). The relationship is moderate (r about -0.4, not close to -1), so there is a lot of scatter around the trend, but it is clearly not due to chance (p < 0.05), and both methods agree. This is a correlation, not proof that age alone causes the drop.
 
-## Dataset 2 - Chemical exposure mystery
+### Dataset 2 - Chemical exposure mystery
 
-### Task 6 - The naive analysis
+#### Task 6 - The naive analysis
 
 I loaded `chemicals_cancer.csv` (1000 patients; columns: benzene, cadmium, pollution_index, age, malignancy) and computed the Pearson correlation between each chemical and malignancy.
 
@@ -139,7 +167,7 @@ I loaded `chemicals_cancer.csv` (1000 patients; columns: benzene, cadmium, pollu
 
 **Naive conclusion.** Both correlations are statistically significant, but cadmium is far more strongly associated with malignancy (r = 0.88) than benzene (r = 0.38). Taken at face value, cadmium appears to be the cause of malignancy. However, a correlation alone cannot show causation, so this needs to be checked for a confounder (Task 7).
 
-### Task 7 - Look again (confounder)
+#### Task 7 - Look again (confounder)
 
 **Suspected confounder.** The correlation matrix shows that `pollution_index` is almost the same variable as cadmium (r = 0.98) and is also strongly linked to malignancy (r = 0.90). It is not related to benzene (r = 0.05). Age is not a candidate (r = -0.03 with malignancy). So pollution could be producing the cadmium-malignancy link.
 
@@ -155,7 +183,7 @@ In the five bands (width 20), benzene stays at r = 0.68-0.77, while cadmium drop
 
 **Conclusion.** Benzene is the real cause of malignancy: its association survives when pollution is held fixed. Cadmium only looked guilty: its association disappears once pollution is controlled, because cadmium follows pollution (r = 0.98) and pollution drives malignancy. A confounder (pollution) created a fake link between cadmium and malignancy.
 
-## Bonus - How unpredictable is a category?
+### Bonus - How unpredictable is a category?
 
 I measured the Shannon entropy H = -sum(p_i * log2(p_i)) of the categorical column `target` (and `sex` for comparison), using `value_counts(normalize=True)` for the proportions. For two categories the maximum is 1 bit (50/50, hardest to guess) and the minimum is 0 (always the same category).
 
