@@ -77,3 +77,91 @@ The Snakemake pipeline automates the generation of `figure.png` from `decay_obse
 
 **Part 5 (bonus) - Titration:**
 - The slope of the pH curve is largest at V = 50.0 mL, so the equivalence point is at 50.0 mL (pH = 7.0 there, largest slope 4.0 pH units per mL).
+
+---
+
+## PW3 --- Data, Distributions, Testing, and Causation
+
+### Session 1 - Shape of the variables
+
+![Histograms](PW3/histograms.png)
+
+Looking at the four histograms, here is how I would describe each variable:
+
+- **age** looks the most "normal" of the four. The values pile up in the middle (around 55-60) and get less frequent on both sides, so it looks like a rough bell. It is a bit bumpy, but there is no strong lean to either side.
+- **chol** (cholesterol) is clearly lopsided. Most people sit between about 200 and 280, but the right side stretches out much further than the left. One patient has a value of around 560, far away from everyone else.
+- **trestbps** (resting blood pressure) is also a bit lopsided to the right. Most patients are between 120 and 140, and only a few have really high pressure (up to 200).
+- **thalach** (max heart rate) is lopsided in the opposite direction. Most values are high (around 150-170), and a smaller group of patients has much lower heart rates, which creates a tail on the left side.
+
+## Session 2
+
+### Task 4 - Is the effect real? (thalach, disease vs healthy)
+
+**Method.** I split thalach into two groups using `target` (1 = disease, n = 165; 0 = healthy, n = 138). In Session 1 thalach was not normal (Shapiro p = 7e-05), and the disease group alone is also not normal (p = 0.0004). Because the t-test assumes normality, I used the non-parametric Mann-Whitney U test instead, two-tailed (H0: the two groups have the same distribution; H1: they differ), alpha = 0.05.
+
+**Result.** U = 17038, p = 9.8e-14 < 0.05, so I reject H0.
+
+**Conclusion.** The two groups clearly differ in maximum heart rate; this is not just chance. The group with target = 1 has the higher values (mean 158.47 vs 139.10). Note: this is the opposite of what is usually expected medically; this dataset version is known to have a flipped target coding in some copies, but I followed the task definition (1 = disease).
+
+**Uncertainty of the means** (mean +- standard error, SE = std / sqrt(n)):
+
+| group | n | mean thalach | SE | approx. 95% CI |
+|---|---|---|---|---|
+| disease | 165 | 158.47 | 1.49 | [155.48, 161.45] |
+| healthy | 138 | 139.10 | 1.92 | [135.25, 142.95] |
+
+![Means with error bars](PW3/thalach_means.png)
+
+The picture agrees with the test: the means are far apart (about 19 bpm), the error bars are small and the confidence intervals do not overlap, so the difference is real.
+
+### Task 5 - Do age and thalach move together?
+
+**Method.** I computed the Pearson correlation coefficient r between age and thalach. Since thalach is not normal, I also computed the Spearman rank correlation (no normality assumption) as a check.
+
+**Result.** Pearson r = -0.399 (p = 5.6e-13); Spearman rho = -0.398 (p = 6.0e-13).
+
+![age vs thalach](PW3/age_thalach.png)
+
+**Interpretation.** age and thalach move in opposite directions: older patients tend to reach a lower maximum heart rate (on average about 1 bpm less per year, from the trend line). The relationship is moderate (r about -0.4, not close to -1), so there is a lot of scatter around the trend, but it is clearly not due to chance (p < 0.05), and both methods agree. This is a correlation, not proof that age alone causes the drop.
+
+## Dataset 2 - Chemical exposure mystery
+
+### Task 6 - The naive analysis
+
+I loaded `chemicals_cancer.csv` (1000 patients; columns: benzene, cadmium, pollution_index, age, malignancy) and computed the Pearson correlation between each chemical and malignancy.
+
+| chemical | Pearson r with malignancy | p-value |
+|---|---|---|
+| benzene | 0.385 | 1.3e-36 |
+| cadmium | 0.880 | ~0 |
+
+![Naive scatter plots](PW3/naive_scatter.png)
+
+**Naive conclusion.** Both correlations are statistically significant, but cadmium is far more strongly associated with malignancy (r = 0.88) than benzene (r = 0.38). Taken at face value, cadmium appears to be the cause of malignancy. However, a correlation alone cannot show causation, so this needs to be checked for a confounder (Task 7).
+
+### Task 7 - Look again (confounder)
+
+**Suspected confounder.** The correlation matrix shows that `pollution_index` is almost the same variable as cadmium (r = 0.98) and is also strongly linked to malignancy (r = 0.90). It is not related to benzene (r = 0.05). Age is not a candidate (r = -0.03 with malignancy). So pollution could be producing the cadmium-malignancy link.
+
+**Method.** I kept only patients with similar pollution (45 < pollution_index < 55, n = 94) and recomputed the Pearson correlations inside this group ("compare like with like"). I repeated it in five pollution bands as a robustness check.
+
+| group | benzene r | cadmium r |
+|---|---|---|
+| all patients (naive) | 0.385 | 0.880 |
+| pollution_index 45-55 | 0.658 (p = 5.8e-13) | -0.04 (p = 0.70) |
+In the five bands (width 20), benzene stays at r = 0.68-0.77, while cadmium drops to 0.19-0.31 (the band is wide, so some pollution variation remains).
+
+![Naive vs controlled](PW3/confounder_check.png)
+
+**Conclusion.** Benzene is the real cause of malignancy: its association survives when pollution is held fixed. Cadmium only looked guilty: its association disappears once pollution is controlled, because cadmium follows pollution (r = 0.98) and pollution drives malignancy. A confounder (pollution) created a fake link between cadmium and malignancy.
+
+## Bonus - How unpredictable is a category?
+
+I measured the Shannon entropy H = -sum(p_i * log2(p_i)) of the categorical column `target` (and `sex` for comparison), using `value_counts(normalize=True)` for the proportions. For two categories the maximum is 1 bit (50/50, hardest to guess) and the minimum is 0 (always the same category).
+
+| column | proportions | entropy H |
+|---|---|---|
+| target | 1: 54.5%, 0: 45.5% | 0.9943 bits |
+| sex | 1: 68.3%, 0: 31.7% | 0.9009 bits |
+
+**Interpretation.** `target` is almost perfectly balanced, so its entropy is very close to the maximum of 1 bit: it is very hard to guess whether a random patient has the disease (guessing the most common class is right only 54.5% of the time). `sex` is more lopsided (68% in one category), so it has lower entropy and is a bit easier to guess.
